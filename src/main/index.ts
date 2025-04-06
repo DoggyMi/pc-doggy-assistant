@@ -35,6 +35,31 @@ function createWindow(): void {
   }
 }
 
+function createPomodoroWindow(): void {
+  console.log('createPomodoroWindow')
+  const pomodoroWindow = new BrowserWindow({
+    width: 400,
+    height: 600,
+    show: false,
+    autoHideMenuBar: true,
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false
+    }
+  })
+
+  pomodoroWindow.on('ready-to-show', () => {
+    pomodoroWindow.show()
+  })
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    pomodoroWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/newPage.html`)
+  } else {
+    pomodoroWindow.loadFile(join(__dirname, '../renderer/newPage.html'))
+  }
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -51,6 +76,7 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on('create-pomodoro-window', () => createPomodoroWindow())
 
   createWindow()
 
